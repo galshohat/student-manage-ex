@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Student Tracker{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.students') }}">Students</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('main.student_detail', id=student.id) }}">{{ student.full_name }}</a></li>
+                <li class="breadcrumb-item active">{{ title }}</li>
+            </ol>
+        </nav>
+        <h1>{{ title }}</h1>
+        <p class="text-muted">Student: {{ student.full_name }}</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.subject_name.label(class="form-label") }}
+                        {{ form.subject_name(class="form-control" + (" is-invalid" if form.subject_name.errors else "")) }}
+                        {% if form.subject_name.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.subject_name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.grade.label(class="form-label") }}
+                                {{ form.grade(class="form-control" + (" is-invalid" if form.grade.errors else ""), min="0", max="100", step="0.01") }}
+                                {% if form.grade.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.grade.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Enter grade as percentage (0-100)</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.semester.label(class="form-label") }}
+                                {{ form.semester(class="form-control" + (" is-invalid" if form.semester.errors else "")) }}
+                                {% if form.semester.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.semester.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">e.g., "Fall 2024", "Spring 2024"</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.teacher_name.label(class="form-label") }}
+                        {{ form.teacher_name(class="form-control" + (" is-invalid" if form.teacher_name.errors else "")) }}
+                        {% if form.teacher_name.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.teacher_name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('main.student_detail', id=student.id) }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Cancel
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

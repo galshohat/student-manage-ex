@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Student Tracker{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.students') }}">Students</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('main.student_detail', id=student.id) }}">{{ student.full_name }}</a></li>
+                <li class="breadcrumb-item active">{{ title }}</li>
+            </ol>
+        </nav>
+        <h1>{{ title }}</h1>
+        <p class="text-muted">Student: {{ student.full_name }}</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.title.label(class="form-label") }}
+                        {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else "")) }}
+                        {% if form.title.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.title.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Brief title for the note</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.content.label(class="form-label") }}
+                        {{ form.content(class="form-control" + (" is-invalid" if form.content.errors else ""), rows="5") }}
+                        {% if form.content.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.content.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Detailed content of the note</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.created_by.label(class="form-label") }}
+                        {{ form.created_by(class="form-control" + (" is-invalid" if form.created_by.errors else "")) }}
+                        {% if form.created_by.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.created_by.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Who is creating this note?</div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('main.student_detail', id=student.id) }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Cancel
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

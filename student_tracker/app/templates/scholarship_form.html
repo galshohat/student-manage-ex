@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Student Tracker{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.students') }}">Students</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('main.student_detail', id=student.id) }}">{{ student.full_name }}</a></li>
+                <li class="breadcrumb-item active">{{ title }}</li>
+            </ol>
+        </nav>
+        <h1>{{ title }}</h1>
+        <p class="text-muted">Student: {{ student.full_name }}</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label") }}
+                        {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.amount.label(class="form-label") }}
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else ""), min="0", step="0.01") }}
+                                    {% if form.amount.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.amount.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.source.label(class="form-label") }}
+                                {{ form.source(class="form-control" + (" is-invalid" if form.source.errors else "")) }}
+                                {% if form.source.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.source.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Organization or institution providing the scholarship</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                {{ form.start_date.label(class="form-label") }}
+                                {{ form.start_date(class="form-control" + (" is-invalid" if form.start_date.errors else "")) }}
+                                {% if form.start_date.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.start_date.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                {{ form.end_date.label(class="form-label") }}
+                                {{ form.end_date(class="form-control" + (" is-invalid" if form.end_date.errors else "")) }}
+                                {% if form.end_date.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.end_date.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                {{ form.status.label(class="form-label") }}
+                                {{ form.status(class="form-select" + (" is-invalid" if form.status.errors else "")) }}
+                                {% if form.status.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.status.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('main.student_detail', id=student.id) }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Cancel
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
