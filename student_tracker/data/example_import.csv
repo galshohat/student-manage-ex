@@ -1,0 +1,4 @@
+student_id,full_name,email,phone,date_of_birth,gender,year_of_study,program
+STU001,John Doe,john.doe@example.com,555-0101,1998-05-15,Male,2,Computer Science
+STU002,Jane Smith,jane.smith@example.com,555-0102,1999-08-22,Female,1,Biology  
+STU003,Bob Johnson,bob.johnson@example.com,555-0103,1997-12-10,Male,3,Engineering

@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+
+{% block title %}{{ student.full_name }} - Student Tracker{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.students') }}">Students</a></li>
+                <li class="breadcrumb-item active">{{ student.full_name }}</li>
+            </ol>
+        </nav>
+        <h1>{{ student.full_name }}</h1>
+    </div>
+    <div>
+        <a href="{{ url_for('main.edit_student', id=student.id) }}" class="btn btn-warning">
+            <i class="bi bi-pencil me-1"></i>Edit
+        </a>
+        <button type="button" class="btn btn-danger" 
+                onclick="confirmDelete({{ student.id }}, '{{ student.full_name }}')">
+            <i class="bi bi-trash me-1"></i>Delete
+        </button>
+    </div>
+</div>
+
+<!-- Student Information -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-person me-2"></i>Student Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Student ID:</strong> {{ student.student_id }}</p>
+                        <p><strong>Email:</strong> {{ student.email }}</p>
+                        <p><strong>Phone:</strong> {{ student.phone or 'Not provided' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Date of Birth:</strong> {{ student.date_of_birth.strftime('%Y-%m-%d') if student.date_of_birth else 'Not provided' }}</p>
+                        <p><strong>Gender:</strong> {{ student.gender or 'Not provided' }}</p>
+                        <p><strong>Year of Study:</strong> {{ student.year_of_study or 'Not provided' }}</p>
+                    </div>
+                </div>
+                <p><strong>Program:</strong> {{ student.program or 'Not provided' }}</p>
+                <p><strong>Created:</strong> {{ student.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                <p><strong>Last Updated:</strong> {{ student.updated_at.strftime('%Y-%m-%d %H:%M') }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-graph-up me-2"></i>Quick Stats</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Total Grades:</strong> {{ grades|length }}</p>
+                <p><strong>Disciplinary Notes:</strong> {{ disciplinary_notes|length }}</p>
+                <p><strong>General Notes:</strong> {{ general_notes|length }}</p>
+                <p><strong>Scholarships:</strong> {{ scholarships|length }}</p>
+                {% if grades %}
+                    {% set total_grade = grades|sum(attribute='grade') %}
+                    {% set avg_grade = (total_grade / grades|length)|round(2) %}
+                    <p><strong>Average Grade:</strong> 
+                        <span class="badge bg-{% if avg_grade >= 90 %}success{% elif avg_grade >= 80 %}primary{% elif avg_grade >= 70 %}warning{% else %}danger{% endif %}">
+                            {{ avg_grade }}%
+                        </span>
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs for different sections -->
+<ul class="nav nav-tabs" id="studentTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="grades-tab" data-bs-toggle="tab" data-bs-target="#grades" type="button" role="tab">
+            <i class="bi bi-bar-chart me-1"></i>Grades ({{ grades|length }})
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="disciplinary-tab" data-bs-toggle="tab" data-bs-target="#disciplinary" type="button" role="tab">
+            <i class="bi bi-exclamation-triangle me-1"></i>Disciplinary ({{ disciplinary_notes|length }})
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes" type="button" role="tab">
+            <i class="bi bi-sticky me-1"></i>Notes ({{ general_notes|length }})
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="scholarships-tab" data-bs-toggle="tab" data-bs-target="#scholarships" type="button" role="tab">
+            <i class="bi bi-trophy me-1"></i>Scholarships ({{ scholarships|length }})
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="studentTabsContent">
+    <!-- Grades Tab -->
+    <div class="tab-pane fade show active" id="grades" role="tabpanel">
+        <div class="card border-top-0">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Grades</h6>
+                <a href="{{ url_for('main.add_grade', student_id=student.id) }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus me-1"></i>Add Grade
+                </a>
+            </div>
+            <div class="card-body">
+                {% if grades %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Grade</th>
+                                <th>Semester</th>
+                                <th>Teacher</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for grade in grades %}
+                            <tr>
+                                <td>{{ grade.subject_name }}</td>
+                                <td>
+                                    <span class="badge bg-{% if grade.grade >= 90 %}success{% elif grade.grade >= 80 %}primary{% elif grade.grade >= 70 %}warning{% else %}danger{% endif %}">
+                                        {{ grade.grade }}%
+                                    </span>
+                                </td>
+                                <td>{{ grade.semester }}</td>
+                                <td>{{ grade.teacher_name or '-' }}</td>
+                                <td>{{ grade.date_recorded.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <a href="{{ url_for('main.edit_grade', id=grade.id) }}" class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('main.delete_grade', id=grade.id) }}" 
+                                          style="display: inline;" onsubmit="return confirm('Delete this grade?')">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No grades recorded.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Disciplinary Notes Tab -->
+    <div class="tab-pane fade" id="disciplinary" role="tabpanel">
+        <div class="card border-top-0">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Disciplinary Notes</h6>
+                <a href="{{ url_for('main.add_disciplinary_note', student_id=student.id) }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus me-1"></i>Add Note
+                </a>
+            </div>
+            <div class="card-body">
+                {% if disciplinary_notes %}
+                    {% for note in disciplinary_notes %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="badge bg-{% if note.severity == 'High' %}danger{% elif note.severity == 'Medium' %}warning{% else %}info{% endif %} mb-2">
+                                        {{ note.severity }}
+                                    </span>
+                                    <p>{{ note.description }}</p>
+                                    <small class="text-muted">
+                                        By {{ note.created_by or 'Unknown' }} on {{ note.date_created.strftime('%Y-%m-%d %H:%M') }}
+                                    </small>
+                                </div>
+                                <div>
+                                    <a href="{{ url_for('main.edit_disciplinary_note', id=note.id) }}" class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('main.delete_disciplinary_note', id=note.id) }}" 
+                                          style="display: inline;" onsubmit="return confirm('Delete this note?')">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <p class="text-muted">No disciplinary notes.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- General Notes Tab -->
+    <div class="tab-pane fade" id="notes" role="tabpanel">
+        <div class="card border-top-0">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">General Notes</h6>
+                <a href="{{ url_for('main.add_general_note', student_id=student.id) }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus me-1"></i>Add Note
+                </a>
+            </div>
+            <div class="card-body">
+                {% if general_notes %}
+                    {% for note in general_notes %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6>{{ note.title }}</h6>
+                                    <p>{{ note.content }}</p>
+                                    <small class="text-muted">
+                                        By {{ note.created_by or 'Unknown' }} on {{ note.date_created.strftime('%Y-%m-%d %H:%M') }}
+                                    </small>
+                                </div>
+                                <div>
+                                    <a href="{{ url_for('main.edit_general_note', id=note.id) }}" class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('main.delete_general_note', id=note.id) }}" 
+                                          style="display: inline;" onsubmit="return confirm('Delete this note?')">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <p class="text-muted">No general notes.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Scholarships Tab -->
+    <div class="tab-pane fade" id="scholarships" role="tabpanel">
+        <div class="card border-top-0">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Scholarships</h6>
+                <a href="{{ url_for('main.add_scholarship', student_id=student.id) }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus me-1"></i>Add Scholarship
+                </a>
+            </div>
+            <div class="card-body">
+                {% if scholarships %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Amount</th>
+                                <th>Source</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for scholarship in scholarships %}
+                            <tr>
+                                <td>{{ scholarship.name }}</td>
+                                <td>${{ scholarship.amount }}</td>
+                                <td>{{ scholarship.source }}</td>
+                                <td>{{ scholarship.start_date.strftime('%Y-%m-%d') }} to {{ scholarship.end_date.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <span class="badge bg-{% if scholarship.status == 'active' %}success{% elif scholarship.status == 'expired' %}danger{% else %}warning{% endif %}">
+                                        {{ scholarship.status.title() }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('main.edit_scholarship', id=scholarship.id) }}" class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('main.delete_scholarship', id=scholarship.id) }}" 
+                                          style="display: inline;" onsubmit="return confirm('Delete this scholarship?')">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No scholarships recorded.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="studentName"></strong>?</p>
+                <p class="text-danger">This action cannot be undone and will also delete all associated grades, notes, and scholarships.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmDelete(studentId, studentName) {
+    document.getElementById('studentName').textContent = studentName;
+    document.getElementById('deleteForm').action = '/student/' + studentId + '/delete';
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+</script>
+{% endblock %}
